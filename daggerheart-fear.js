@@ -28,14 +28,18 @@ const sendFearNotice = (currentPlayer) => {
     if (!state.fear.counter || state.fear.counter <= 0) {
         sendChat(BOT_NAME, `/w "${currentPlayer.get('displayname')}" <br><strong>Have no fear.</strong> <em>There is none to be had.</em>`);
     } else if (state.fear.counter === 1) {
-        sendChat(BOT_NAME, `/w "${currentPlayer.get('displayname')}" <br>There is <em>a single</em> fear (<mark>1</mark>).`);
+        sendChat(BOT_NAME, `/w "${currentPlayer.get('displayname')}" <br>There is <em>a single</em> 💀 fear (<mark>1</mark>).`);
     } else if (state.fear.counter < 4) {
-        sendChat(BOT_NAME, `/w "${currentPlayer.get('displayname')}" <br>There is <em>some</em> fear (<mark>${state.fear.counter}</mark>).`);
+        sendChat(BOT_NAME, `/w "${currentPlayer.get('displayname')}" <br>There is <em>some</em> 💀 fear (<mark>${state.fear.counter}</mark>).`);
     } else if (state.fear.counter < 8) {
-        sendChat(BOT_NAME, `/w "${currentPlayer.get('displayname')}" <br>There is <strong>much</strong> fear (<mark>${state.fear.counter}</mark>).`);
+        sendChat(BOT_NAME, `/w "${currentPlayer.get('displayname')}" <br>There is <strong>much</strong> 💀 fear (<mark>${state.fear.counter}</mark>).`);
     } else {
-        sendChat(BOT_NAME, `/w "${currentPlayer.get('displayname')}" <br>There is <em><strong>intense</strong></em> fear (<mark>${state.fear.counter}</mark>).`);
+        sendChat(BOT_NAME, `/w "${currentPlayer.get('displayname')}" <br>There is <em><strong>intense</strong></em> 💀 fear (<mark>${state.fear.counter}</mark>).`);
     }
+}
+
+const sendFearIncreaseNotice = (currentPlayer) => {
+    sendChat(BOT_NAME, `/w "${currentPlayer.get('displayname')}" <mark>+1</mark> 💀 Fear has <strong>increased!</strong><br><small>The total is now <mark>${state.fear.counter}</mark>.</small>`);
 }
 
 on('ready', () => {
@@ -50,9 +54,6 @@ on('ready', () => {
     log(`@orbotik's Daggerheart fear script v${VERSION} started listening.`);
     on('chat:message', (msg) => {
         //capture duality roll with fear
-        log(`match1 = ${!!msg.content.match(/demiplane-dice-roll-daggerheart-character/gmi)}`);
-        log(`match2 = ${!!msg.content.match(/--roll-with-fear/gmi)}`);
-        log(`type = ${msg.type}`);
         if (msg.type === 'advancedroll' && msg.content.match(/demiplane-dice-roll-daggerheart-character/gmi) && msg.content.match(/--roll-with-fear/gmi)) {
             state.fear.counter++;
             //send notices
@@ -62,7 +63,7 @@ on('ready', () => {
                     if (state.fear.known.indexOf(p.id) === -1) {
                         sendNewPlayerNotice(p);
                     }
-                    sendFearNotice(p);
+                    sendFearIncreaseNotice(p);
                 }
             }
         }
