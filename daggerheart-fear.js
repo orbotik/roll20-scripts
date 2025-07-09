@@ -17,7 +17,7 @@
  */
 
 const BOT_NAME = 'The Game';
-const VERSION = '1.0.0';
+const VERSION = '1.0.1';
 
 const sendNewPlayerNotice = (currentPlayer) => {
     sendChat(BOT_NAME, `/w "${currentPlayer.get('displayname')}" <strong>Welcome to Orbotik's Daggerheart Fear Tracker!</strong> <small>v${VERSION}</small><br>You may turn fear notices on and off using <strong>!fear on</strong> and <strong>!fear off</strong> commands.`);
