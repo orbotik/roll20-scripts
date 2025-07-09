@@ -20,7 +20,7 @@ If you have any **ideas**, **questions**, or **problems**, *please create [an is
   | `!fear [on/off]` | Turns fear notices on or off (you only). Specifically, when a Demiplane duality roll with fear is detected, you will be sent a whisper by the game of the new fear counter value (if on). The default is `on` for all players. |
   | `!fear reset` | **GM-only.** Resets the fear counter to `0`. |
   | `!fear reset known` | **GM-only.** Resets the known players to empty, this causes players to receive the first welcome message again with instructions to turn notifications on or off. |
-  | `!fear spend [number]` | **GM-only.** Decreases the fear counter by 1 or a specific number (to a minimum of 0). |
+  | `!fear spend [number]` | **GM-only.** Decreases the fear counter by 1, or optionally a specific number (to a minimum of 0). This will send a notice to players that fear has been spent. |
   | `!fear set [number]` | **GM-only.** Sets the fear to any number (0-999). |
 - [Switch-To](switch-to.js) - Ever want to tell a story as a GM and easily switch your portrait on-the-fly? This script allows you to quickly switch your "Speaking as" state to a named character in your game, revealing the portrait of that character in-game (assuming you don't have video enabled). This is really handy as an on-screen macro- you can instantly jump to "speaking as" other characters with the click of a button!
   ##### Commands:

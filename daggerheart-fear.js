@@ -11,7 +11,8 @@
  * !fear [on/off]        Turns fear notices (from duality rolls) on or off for the commanding player.
  * ### GM Only:
  * !fear reset           Resets the fear counter to 0.
- * !fear spend [number]  Decreases the fear counter by 1 or a specific number (to a minimum of 0).
+ * !fear spend [number]  Decreases the fear counter by 1 or a specific number (to a minimum of 0). This will send a 
+ *                       notice to players that fear has been spent.
  * !fear set [number]    Sets the fear counter to a specific value.
  * !fear reset known     Clears the known player list (players will re-receive the welcome message).
  */
@@ -43,8 +44,8 @@ const sendFearIncreaseNotice = (currentPlayer) => {
     sendChat(BOT_NAME, `/w "${currentPlayer.get('displayname')}" <mark>+1</mark> 💀 Fear has <strong>increased!</strong><br><small>The total is now <mark>${state.fear.counter}</mark>.</small>`);
 }
 
-const sendFearDecreaseNotice = (currentPlayer) => {
-    sendChat(BOT_NAME, `/w "${currentPlayer.get('displayname')}" <mark>-1</mark> 💀 Fear has <strong>been spent!</strong><br><small>The total is now <mark>${state.fear.counter}</mark>.</small>`);
+const sendFearDecreaseNotice = (currentPlayer, amount) => {
+    sendChat(BOT_NAME, `/w "${currentPlayer.get('displayname')}" <mark>-${amount}</mark> 💀 Fear has <strong>been spent!</strong><br><small>The total is now <mark>${state.fear.counter}</mark>.</small>`);
 }
 
 on('ready', () => {
@@ -119,18 +120,18 @@ on('ready', () => {
                             sendChat(BOT_NAME, `/w "${currentPlayer.get('displayname')}" Your fear notices are already <mark>on</mark>.`);
                         }
                     } else if (gm && args.length >= 1 && args[0] === 'spend') {
+                        let amount = 1;
                         if (args.length > 1 && args[1] && isFinite(parseInt(args[1]))) {
-                            state.fear.counter -= parseInt(args[1]);
-                        } else {
-                            state.fear.counter--;
+                            amount = parseInt(args[1]);
                         }
+                        state.fear.counter -= amount;
                         if (state.fear.counter < 0) {
                             state.fear.counter = 0;
                         }
                         //send notices
                         let players = findObjs({ _type: 'player' });
                         for (let p of players) {
-                            sendFearDecreaseNotice(p);
+                            sendFearDecreaseNotice(p, amount);
                         }
                     } else if (gm && args.length === 1 && args[0] === 'reset') {
                         state.fear.counter = 0;
