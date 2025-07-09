@@ -11,7 +11,7 @@
  * !fear [on/off]        Turns fear notices (from duality rolls) on or off for the commanding player.
  * ### GM Only:
  * !fear reset           Resets the fear counter to 0.
- * !fear spend [number]  Decreases the fear counter by 1 or a specific number.
+ * !fear spend [number]  Decreases the fear counter by 1 or a specific number (to a minimum of 0).
  * !fear set [number]    Sets the fear counter to a specific value.
  * !fear reset known     Clears the known player list (players will re-receive the welcome message).
  */
