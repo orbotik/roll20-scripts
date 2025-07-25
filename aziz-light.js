@@ -14,12 +14,12 @@
  * and each subsequent exclamation divides the time. So 4 exclamation points would make a 1% increase every 1/2second
  * (2seconds / 4).
  * ### GM Only:
- * !azeez light              90% daytime light.
- * !azeez eve                20% daytime light.
- * !azeez dark               daytime light off.
- * !azeez exactly [number]   +5% daytime light.
- * !azeez more               +5% daytime light.
- * !azeez less               -5% daytime light.
+ * !aziz light              90% daytime light.
+ * !aziz eve                20% daytime light.
+ * !aziz dark               daytime light off.
+ * !aziz exactly [number]   +5% daytime light.
+ * !aziz more               +5% daytime light.
+ * !aziz less               -5% daytime light.
  */
 
 class AzizLightScript {
@@ -166,7 +166,7 @@ class AzizLightScript {
 }
 
 on('ready', () => {
-    log(`Aziz Light! script v${VERSION} initializing.`);
-    new AzizLightScript();
+    let s = new AzizLightScript();
+    log(`Aziz Light! script v${s.VERSION} initializing.`);
     log(`Aziz Light! script initialized.`);
 });
