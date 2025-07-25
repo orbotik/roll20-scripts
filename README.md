@@ -6,8 +6,8 @@ the permissive [CC-SA-BY license](LICENSE).
 If you have any **ideas**, **questions**, or **problems**, *please create [an issue](https://github.com/orbotik/roll20-scripts/issues) in this repo.*
 
 ## Scripts
-- [Aziz Light!](aziz-light.js) - This script is a quick daylight level setting script that allows you to quickly set and move the daylight brightness using
-  dynamic lighting.     
+- [Aziz Light!](aziz-light.js) - This script allows you to quickly set and move the daylight brightness using dynamic lighting to different levels, making it easy to macro light levels and mimic time passing.     
+  *You can add an exclamation point `!` to the end of any of the commands to animate the brightness change.*
   ##### Commands:
   | Cmd | Description |
   |:-|:-|
