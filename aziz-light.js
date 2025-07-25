@@ -22,9 +22,9 @@
  * !aziz less               -5% daytime light.
  */
 
-class AzizLightScript {
+const AZIZ_LIGHT_VERSION = '1.0.0';
 
-    VERSION = '1.0.0';
+class AzizLightScript {
 
     interval = null;
 
@@ -166,7 +166,7 @@ class AzizLightScript {
 }
 
 on('ready', () => {
-    let s = new AzizLightScript();
-    log(`Aziz Light! script v${s.VERSION} initializing.`);
+    log(`Aziz Light! script v${AZIZ_LIGHT_VERSION} initializing.`);
+    new AzizLightScript();
     log(`Aziz Light! script initialized.`);
 });
