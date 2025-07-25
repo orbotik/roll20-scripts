@@ -13,9 +13,10 @@
  * !sample reset           Sample description.
  */
 
-const VERSION = '1.0.0';
-
 class ScriptClassScript {
+
+    VERSION = '1.0.0';
+
     constructor() {
         //ready
     }
@@ -23,7 +24,7 @@ class ScriptClassScript {
 }
 
 on('ready', () => {
-    log(`ScriptName script v${VERSION} initalizing.`);
+    log(`ScriptName script v${VERSION} initializing.`);
     new ScriptClassScript();
     log(`ScriptName script initialized.`);
 });

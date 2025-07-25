@@ -1,4 +1,4 @@
-![Robotic arm flipping book pages, held up by balloons](.repo.png)
+![Robotic arm flipping book pages, held up by balloons](.repo/repo.png)
 # [@orbotik](https://app.roll20.net/users/12231884/orbotik)'s Roll20 API Scripts
 This repository contains my crafted scripts for Roll20 API-enabled games. They are free to use, share, and modify under
 the permissive [CC-SA-BY license](LICENSE).
@@ -6,6 +6,19 @@ the permissive [CC-SA-BY license](LICENSE).
 If you have any **ideas**, **questions**, or **problems**, *please create [an issue](https://github.com/orbotik/roll20-scripts/issues) in this repo.*
 
 ## Scripts
+- [Aziz Light!](aziz-light.js) - This script is a quick daylight level setting script that allows you to quickly set and move the daylight brightness using
+  dynamic lighting.     
+  ##### Commands:
+  | Cmd | Description |
+  |:-|:-|
+  | `!aziz light` | **GM-only.** Returns the daylight brightness to the default 90%. |
+  | `!aziz eve` | **GM-only.** Moves the daylight brightness to the minimum of 20%. |
+  | `!aziz dark` | **GM-only.** Turns daylight to 0% (off). |
+  | `!aziz more` | **GM-only.** Increases the daylight brightness by 5%. |
+  | `!aziz less` | **GM-only.** Decreases the daylight brightness by 5%. |
+  | `!aziz exactly [number]` | **GM-only.** Sets the daylight brightness to a specific percentage (5-100). |
+  > *Inspired from the scene from the Fifth Element.*    
+  > ![Aziz Light!](.repo/aziz-light1.gif) ![Aziz Light Tally](.repo/aziz-light2.gif)
 - [Cleaner](cleaner.js) - This script allows you to quickly normalize and clean the HTML of a specified handout's notes (including GM notes). It removes extraneous tags and styles and basically "resets" the HTML to standard, clean tags that Roll20 doesn't have problems with.
   ##### Commands:
   | Cmd | Description |
