@@ -15,7 +15,7 @@
 
 class ScriptClassScript {
 
-    VERSION = '1.0.0';
+    static VERSION = '1.0.0';
 
     constructor() {
         //ready
@@ -24,7 +24,7 @@ class ScriptClassScript {
 }
 
 on('ready', () => {
-    log(`ScriptName script v${VERSION} initializing.`);
+    log(`ScriptName script v${ScriptClassScript.VERSION} initializing.`);
     new ScriptClassScript();
     log(`ScriptName script initialized.`);
 });

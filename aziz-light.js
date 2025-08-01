@@ -21,10 +21,9 @@
  * !azeez more               +5% daytime light.
  * !azeez less               -5% daytime light.
  */
-
 class AzizLightScript {
 
-    VERSION = '1.0.0';
+    static VERSION = '1.0.0';
 
     interval = null;
 
@@ -166,7 +165,7 @@ class AzizLightScript {
 }
 
 on('ready', () => {
-    log(`Aziz Light! script v${VERSION} initializing.`);
+    log(`Aziz Light! script v${AzizLightScript.VERSION} initializing.`);
     new AzizLightScript();
     log(`Aziz Light! script initialized.`);
 });
