@@ -17,7 +17,7 @@
  *                                optional, and if omitted will set the selected text object. To stop the updating on
  *                                a specific object, run the command again.
  * !fear text [number/tally/circled/bar/dots/skulls]
- *                                Switches the text updated between using tallies or using numbers.
+ *                                Switches how the fear count is displayed in the text objects.
  * !fear announce [on/off]        Globally sets announcements to *all* players on or off when the fear amount changes.
  * !fear whispers [on/off]        Globally sets whispers to players on or off when the fear amount changes.
  * !fear reset                    Resets the fear counter to 0.
@@ -403,6 +403,7 @@ class DaggerheartFearScript {
                                             message = `(${ids.length}) Text objects have been <strong>unregistered</strong> as fear trackers.`;
                                         } else {
                                             ids = this.registerTextObjects(...ids);
+                                            this.updateTextObjects();
                                             message = `(${ids.length}) Text objects have been <strong>registered</strong> as fear trackers.`;
                                         }
                                         if (ids.length) {
@@ -441,7 +442,7 @@ class DaggerheartFearScript {
                                     state.fear.objects = { text: [] };
                                     this.pm(chat.player, 'Tracking objects have been cleared.');
                                 } else {
-                                   this.pm(chat.player, 'Invalid command argument(s).'); 
+                                    this.pm(chat.player, 'Invalid command argument(s).');
                                 }
                             } else {
                                 this.pm(chat.player, 'Invalid command or parameters (or you may not be the GM).');
