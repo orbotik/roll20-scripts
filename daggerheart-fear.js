@@ -11,24 +11,32 @@
  * !fear [on/off]        Turns fear notices (from duality rolls) on or off for the commanding player.
  * ### GM Only:
  * !fear reset                    Resets the fear counter to 0.
- * !fear text-obj {id}            Registers a text object to be updated with fear amount as it changes. The {id} is
+ * !fear text {id}                Registers a text object to be updated with fear amount as it changes. The {id} is
  *                                optional, and if omitted will set the selected text object. To stop the updating on
  *                                a specific object, run the command again.
- * !fear text-obj [number/tally]  Switches the text updated between using tallies or using numbers.
+ * !fear text [number/tally/circled/bar/dots/skulls]
+ *                                Switches the text updated between using tallies or using numbers.
+ * !fear announce [on/off]        Globally sets announcements to *all* players on or off when the fear amount changes.
  * !fear whispers [on/off]        Globally sets whispers to players on or off when the fear amount changes.
  * !fear spend [number]           Decreases the fear counter by 1 or a specific number (to a minimum of 0).
  * !fear gain [number]            Increases the fear counter by 1 or a specific number.
  * !fear set [number]             Sets the fear counter to a specific value.
- * !fear reset text-obj           Clears all fear-tracking updates to all registered text objects.
+ * !fear reset objects            Clears all fear-tracking object registrations
  * !fear reset known              Clears the known player list (players will re-receive the welcome message).
  */
 class DaggerheartFearScript {
 
-    static VERSION = '1.0.1';
+    static VERSION = '1.0.3';
 
     static BOT_NAME = 'The Game';
 
     static MAXIMUM_FEAR = 12; //per daggerheart standard rules (pg.154 §Fear, Gaining Fear).
+
+    static ADDITIONAL_TEXT_MODES = {
+        bar: '█',
+        dots: '•',
+        skulls: '💀'
+    };
 
     constructor() {
         //init state
@@ -42,73 +50,105 @@ class DaggerheartFearScript {
         }
         //upgrade
         if (state.fear?.version !== DaggerheartFearScript.VERSION) {
-            state.fear.whispers = true;
+            state.fear.whispers = false;
+            state.fear.announce = true;
+            state.fear.textMode = 'tally';
+            state.fear.objects = {
+                text: []
+            };
             state.fear.version = DaggerheartFearScript.VERSION;
         }
         if (state.fear.counter > DaggerheartFearScript.MAXIMUM_FEAR) {
             state.fear.counter = DaggerheartFearScript.MAXIMUM_FEAR;
         }
-        log(`state is: ${JSON.stringify(state.fear, null, 4)}`);
+        log(`DaggerheartFearScript startup state is: ${JSON.stringify(state.fear, null, 4)}`);
         //events
         on('chat:message', this.chatHandler.bind(this));
     }
 
+    /**
+     * Returns the fear message that explains the current fear level.
+     * @param {String} variant 
+     * @returns {String}
+     */
+    fearMessage(variant) {
+        let message = '';
+        let variantVerb = '';
+        if (variant && variant !== '+' && variant !== '-') {
+            throw new Error('Invalid fear message variant specified.');
+        } else if (variant === '+') {
+            message = '<br><strong>💀 Fear has increased!</strong>';
+            variantVerb = 'now ';
+        } else if (variant === '-') {
+            message = '<br><strong>🌸 Fear has <em>been reduced</em>!</strong>';
+            variantVerb = 'still ';
+        }
+        if (!state.fear.counter || state.fear.counter <= 0) {
+            message += `<br><strong>Have no fear.</strong> There is none to be had (<mark>0</mark>).`;
+        } else if (state.fear.counter === 1) {
+            message += `<br>There is ${variantVerb}<em>a single</em> fear (<mark>1</mark>).`;
+        } else if (state.fear.counter < 4) {
+            message += `<br>There is ${variantVerb}<em>some</em> fear (<mark>${state.fear.counter}</mark>).`;
+        } else if (state.fear.counter < 7) {
+            message += `<br>There is ${variantVerb}<strong>much</strong> fear (<mark>${state.fear.counter}</mark>).`;
+        } else if (state.fear.counter < 10) {
+            message += `<br>There is ${variantVerb}<em><strong>strong</strong></em> fear (<mark>${state.fear.counter}</mark>).`;
+        } else if (state.fear.counter < DaggerheartFearScript.MAXIMUM_FEAR) {
+            message += `<br>There is ${variantVerb}<em><strong>intense</strong></em> fear (<mark>${state.fear.counter}</mark>).`;
+        } else {
+            message += `<br>There is ${variantVerb}<em><strong>maximum</strong></em> fear (<mark>${state.fear.counter}</mark>).`;
+        }
+        return message;
+    }
+
+    /**
+     * Send a player a private message (whisper).
+     * @param {String | Object} playerObjOrID 
+     * @param {String} message 
+     */
     pm(playerObjOrID, message) {
-        if (!playerObjOrID || !message) {
-            throw new Error('Player and message are required to send chat.');
+        if (!message) {
+            throw new Error('A message is required to send chat.');
         }
         if (typeof playerObjOrID === 'string') {
             playerObjOrID = getObj('player', playerObjOrID);
         }
-        if (!playerObjOrID) {
-            throw new Error(`Player not found: ${playerObjOrID}`);
-        }
         if (typeof message !== 'string') {
             throw new Error('Message must be a string.');
         }
-        sendChat(DaggerheartFearScript.BOT_NAME, `/w "${playerObjOrID.get('displayname')}" ${message}`);
+        if (!playerObjOrID) {
+            sendChat(DaggerheartFearScript.BOT_NAME, message);
+        } else {
+            sendChat(DaggerheartFearScript.BOT_NAME, `/w "${playerObjOrID.get('displayname')}" ${message}`);
+        }
     }
 
-    pmFear(playerObjOrID, whisperNotice = true, variant) {
-        if (!playerObjOrID) {
-            //handle called without a specific player, and notify everyone (that's not off).
+    /**
+     * Send a player a private message of the current fear value.
+     * @param {String | Object} playerObjOrID 
+     * @param {String} variant 
+     */
+    pmFear(playerObjOrID, variant) {
+        let message = this.fearMessage(variant);
+        this.pm(playerObjOrID, message);
+    }
+
+    /**
+     * Announce (or whisper) the current fear value to all players.
+     * If whispers is enabled, only registered and whisper-"on" players are pm'd.
+     * @param {String} variant 
+     */
+    announceFear(variant) {
+        if (state.fear.whispers) {
             let players = findObjs({ _type: 'player' });
+            let message = this.fearMessage(variant);
             for (let p of players) {
-                if (whisperNotice === false || (state.fear.whispers && state.fear.off.includes(p.id) === false)) {
-                    this.pmFear(p, whisperNotice, variant);
+                if (state.fear.off.includes(p.id) === false) {
+                    this.pm(p, message);
                 }
             }
-        } else {
-            if (typeof playerObjOrID === 'string') {
-                playerObjOrID = getObj('player', playerObjOrID);
-            }
-            if (whisperNotice === false || (state.fear.whispers && state.fear.off.includes(playerObjOrID.id) === false)) {
-                let message = '';
-                let varientVerb = '';
-                if (variant === '+') {
-                    message = '<br><strong>💀 Fear has increased!</strong>';
-                    varientVerb = 'now ';
-                } else if (variant === '-') {
-                    message = '<br><strong>🌸 Fear has <em>been reduced</em>!</strong>';
-                    varientVerb = 'still ';
-                }
-                if (!state.fear.counter || state.fear.counter <= 0) {
-                    message += `<br><strong>Have no fear.</strong> There is none to be had (<mark>0</mark>).`;
-                } else if (state.fear.counter === 1) {
-                    message += `<br>There is ${varientVerb}<em>a single</em> fear (<mark>1</mark>).`;
-                } else if (state.fear.counter < 4) {
-                    message += `<br>There is ${varientVerb}<em>some</em> fear (<mark>${state.fear.counter}</mark>).`;
-                } else if (state.fear.counter < 7) {
-                    message += `<br>There is ${varientVerb}<strong>much</strong> fear (<mark>${state.fear.counter}</mark>).`;
-                } else if (state.fear.counter < 10) {
-                    message += `<br>There is ${varientVerb}<em><strong>strong</strong></em> fear (<mark>${state.fear.counter}</mark>).`;
-                } else if (state.fear.counter < DaggerheartFearScript.MAXIMUM_FEAR) {
-                    message += `<br>There is ${varientVerb}<em><strong>intense</strong></em> fear (<mark>${state.fear.counter}</mark>).`;
-                } else {
-                    message += `<br>There is ${varientVerb}<em><strong>maximum</strong></em> fear (<mark>${state.fear.counter}</mark>).`;
-                }
-                this.pm(playerObjOrID, message);
-            }
+        } else if (state.fear.announce) {
+            sendChat(DaggerheartFearScript.BOT_NAME, this.fearMessage(variant));
         }
     }
 
@@ -151,8 +191,53 @@ class DaggerheartFearScript {
         }
     }
 
-    registerTextObject(obj) {
+    registerTextObjects(...objectIDs) {
+        let textObjs = filterObjs(obj => objectIDs.includes(obj.id) && obj.get('type') === 'text');
+        objectIDs = textObjs.map(o => o.id);
+        for (let oid of objectIDs) {
+            if (state.fear.objects.text.includes(oid) === false) {
+                state.fear.objects.text.push(oid);
+            }
+        }
+        return textObjs.map(o => o.id);
+    }
 
+    unregisterTextObjects(...objectIDs) {
+        let textObjs = filterObjs(obj => objectIDs.includes(obj.id) && obj.get('type') === 'text');
+        objectIDs = textObjs.map(o => o.id);
+        for (let oid of objectIDs) {
+            let index = state.fear.objects.text.indexOf(oid);
+            if (index >= 0) {
+                state.fear.objects.text.splice(index, 1);
+            }
+        }
+        return textObjs.map(o => o.id);
+    }
+
+    updateTextObjects() {
+        if (state.fear.objects.text.length) {
+            for (let oid of state.fear.objects.text) {
+                let textObject = getObj('text', oid);
+                if (state.fear.textMode === 'tally') {
+                    let text = '𝍸'.repeat(Math.floor(state.fear.counter / 5));
+                    switch (state.fear.counter % 5) {
+                        case 1: text += '𝍩'; break;
+                        case 2: text += '𝍪'; break;
+                        case 3: text += '𝍫'; break;
+                        case 4: text += '𝍬'; break;
+                    }
+                    textObject.set('text', text);
+                } else if (state.fear.textMode === 'circled') {
+                    let parts = state.fear.counter.toString().split('');
+                    let glyphs = ['⓪', '⓵', '⓶', '⓷', '⓸', '⓹', '⓺', '⓻', '⓼', '⓽'];
+                    textObject.set('text', parts.map(n => glyphs[parseInt(n)]).join(''));
+                } else if (DaggerheartFearScript.ADDITIONAL_TEXT_MODES[state.fear.textMode]) {
+                    textObject.set('text', DaggerheartFearScript.ADDITIONAL_TEXT_MODES[state.fear.textMode].repeat(state.fear.counter))
+                } else {
+                    textObject.set('text', state.fear.counter.toString());
+                }
+            }
+        }
     }
 
     chatCommand(msg) {
@@ -181,21 +266,27 @@ class DaggerheartFearScript {
 
     chatHandler(msg) {
         //check if new player
-        if ((msg.type === 'general' || msg.type === 'api') && msg.playerid && state.fear.known.includes(msg.playerid) === false) {
+        if ((msg.type === 'general' || msg.type === 'api') &&
+            msg.playerid &&
+            msg.playerid !== 'API' &&
+            state.fear.known.includes(msg.playerid) === false) {
             let p = getObj('player', msg.playerid);
-            this.pm(p, `<strong>Welcome to Orbotik's Daggerheart Fear Tracker!</strong> <small>v${DaggerheartFearScript.VERSION}</small><br>You may turn fear notices on and off using <strong>!fear on</strong> and <strong>!fear off</strong> commands.`);
-            this.registerPlayer(p);
+            if (p) {
+                this.pm(p, `<strong>Welcome to Orbotik's Daggerheart Fear Tracker!</strong> <small>v${DaggerheartFearScript.VERSION}</small><br>You may turn fear notices on and off using <strong>!fear on</strong> and <strong>!fear off</strong> commands.`);
+                this.registerPlayer(p);
+            }
         }
         //capture duality roll with fear
         if (msg.type === 'advancedroll' && msg.content.match(/demiplane-dice-roll-daggerheart-character/gmi) && msg.content.match(/--roll-with-fear/gmi)) {
             state.fear.counter = Math.min(DaggerheartFearScript.MAXIMUM_FEAR, state.fear.counter + 1);
-            this.pmFear(null, true, '+');
+            this.updateTextObjects();
+            this.announceFear('+');
         } else {
             let chat = this.chatCommand(msg);
             if (chat?.command === 'fear') {
                 if (chat.args.length === 0) {
                     log(`Showing fear of ${state.fear.counter ?? 0} to ${chat.player.get('displayname')}.`);
-                    this.pmFear(chat.player, false);
+                    this.pmFear(chat.player);
                 } else {
                     switch (chat.args[0]) {
                         case 'off':
@@ -203,6 +294,48 @@ class DaggerheartFearScript {
                             break;
                         case 'on':
                             this.registerPlayer(chat.player);
+                            break;
+                        case 'whisper':
+                        case 'whispers':
+                            if (chat.gm) {
+                                if (chat.args[1] === 'on') {
+                                    let message = 'Whispers are now <mark>on</mark>';
+                                    state.fear.whispers = true;
+                                    if (state.fear.announce) {
+                                        state.fear.announce = false;
+                                        message += '<br>Announcements are <mark>off</mark>';
+                                    }
+                                    this.pm(chat.player, message);
+                                } else if (chat.args[1] === 'off') {
+                                    state.fear.whispers = false;
+                                    this.pm(chat.player, 'Whispers are now <mark>off</mark>');
+                                } else {
+                                    this.pm(chat.player, 'Invalid command arguments, expected "on" or "off"');
+                                }
+                            } else {
+                                this.pm(chat.player, 'Invalid command or parameters (or you may not be the GM).');
+                            }
+                            break;
+                        case 'announce':
+                        case 'announcements':
+                            if (chat.gm) {
+                                if (chat.args[1] === 'on') {
+                                    let message = 'Announcements are now <mark>on</mark>';
+                                    state.fear.announce = true;
+                                    if (state.fear.whispers) {
+                                        state.fear.whispers = false;
+                                        message += '<br>Whispers are <mark>off</mark>';
+                                    }
+                                    this.pm(chat.player, message);
+                                } else if (chat.args[1] === 'off') {
+                                    state.fear.announce = false;
+                                    this.pm(chat.player, 'Announcements are now <mark>off</mark>');
+                                } else {
+                                    this.pm(chat.player, 'Invalid command arguments, expected "on" or "off"');
+                                }
+                            } else {
+                                this.pm(chat.player, 'Invalid command or parameters (or you may not be the GM).');
+                            }
                             break;
                         case 'spend':
                         case 'gain':
@@ -217,12 +350,14 @@ class DaggerheartFearScript {
                                         state.fear.counter = 0;
                                     }
                                     //send notices
-                                    this.pmFear(null, true, '-');
+                                    this.updateTextObjects();
+                                    this.announceFear('-');
                                     this.pm(chat.player, `Fear has been spent. New value is <mark>${state.fear.counter}</mark>.`);
                                 } else if (chat.args[0] === 'gain' && state.fear.counter + amount <= DaggerheartFearScript.MAXIMUM_FEAR) {
                                     state.fear.counter += amount;
                                     //send notices
-                                    this.pmFear(null, true, '+');
+                                    this.updateTextObjects();
+                                    this.announceFear('+');
                                     this.pm(chat.player, `Fear has been gained. New value is <mark>${state.fear.counter}</mark>.`);
                                 } else {
                                     this.pm(chat.player, `Unable to ${chat.args[0]} <mark>${amount}</mark> fear, fear is currently: <mark>${state.fear.counter}</mark>.`);
@@ -237,10 +372,52 @@ class DaggerheartFearScript {
                                 let newCounter = Math.min(DaggerheartFearScript.MAXIMUM_FEAR, Math.max(0, parseInt(chat.args[1])));
                                 if (originalCounter != newCounter) {
                                     state.fear.counter = newCounter;
-                                    this.pmFear(null, true, originalCounter < newCounter ? '+' : '-');
+                                    this.updateTextObjects();
+                                    this.announceFear(originalCounter < newCounter ? '+' : '-');
                                     this.pm(chat.player, `Fear has been set to <mark>${state.fear.counter}</mark>.`);
                                 } else {
                                     this.pm(chat.player, `Fear is already set to <mark>${state.fear.counter}</mark>.`);
+                                }
+                            } else {
+                                this.pm(chat.player, 'Invalid command or parameters (or you may not be the GM).');
+                            }
+                            break;
+                        case 'text':
+                            if (chat.gm) {
+                                if (chat.args.length === 2 && (
+                                    chat.args[1] === 'tally' || chat.args[1] === 'number' || chat.args[1] === 'circled' ||
+                                    !!DaggerheartFearScript.ADDITIONAL_TEXT_MODES[chat.args[1]]
+                                )) {
+                                    state.fear.textMode = chat.args[1];
+                                    this.updateTextObjects();
+                                    this.pm(chat.player, `Text mode is now set to "${chat.args[1]}".`);
+                                } else if (chat.args.length === 1 || chat.args.length === 2) {
+                                    let ids = msg.selected?.filter(s => s._type === 'text').map(s => s._id);
+                                    if (chat.args.length === 2) {
+                                        ids = [chat.args[1]];
+                                    }
+                                    if (ids && ids.length) {
+                                        let message;
+                                        if (ids.some(oid => state.fear.objects.text.includes(oid))) {
+                                            ids = this.unregisterTextObjects(...ids);
+                                            message = `(${ids.length}) Text objects have been <strong>unregistered</strong> as fear trackers.`;
+                                        } else {
+                                            ids = this.registerTextObjects(...ids);
+                                            message = `(${ids.length}) Text objects have been <strong>registered</strong> as fear trackers.`;
+                                        }
+                                        if (ids.length) {
+                                            message += '<ul>';
+                                            for (let id of ids) {
+                                                message += `<li>ID: ${id}</li>`;
+                                            }
+                                            message += '</ul>';
+                                        }
+                                        this.pm(chat.player, message);
+                                    } else {
+                                        this.pm(chat.player, `No text objects are selected. Please select a text object, or specify the object ID.`);
+                                    }
+                                } else {
+                                    this.pm(chat.player, 'Invalid arguments. Expected either a text object ID or a text mode, or no arguments and that you have selected text objects.');
                                 }
                             } else {
                                 this.pm(chat.player, 'Invalid command or parameters (or you may not be the GM).');
@@ -251,14 +428,20 @@ class DaggerheartFearScript {
                                 if (chat.args.length === 1) {
                                     if (state.fear.counter !== 0) {
                                         state.fear.counter = 0;
+                                        this.updateTextObjects();
                                         this.pm(chat.player, 'Fear has been reset to <mark>0</mark>.');
-                                        this.pmFear(null, true, '-');
+                                        this.announceFear('-');
                                     } else {
                                         this.pm(chat.player, 'Fear is already at <mark>0</mark>.');
                                     }
                                 } else if (chat.args[1] === 'known') {
                                     state.fear.known = [];
-                                    this.pm(chat.player, 'Known players for fear has been reset (cleared).');
+                                    this.pm(chat.player, 'The list of known players has been cleared.');
+                                } else if (chat.args[1] === 'objects') {
+                                    state.fear.objects = { text: [] };
+                                    this.pm(chat.player, 'Tracking objects have been cleared.');
+                                } else {
+                                   this.pm(chat.player, 'Invalid command argument(s).'); 
                                 }
                             } else {
                                 this.pm(chat.player, 'Invalid command or parameters (or you may not be the GM).');
