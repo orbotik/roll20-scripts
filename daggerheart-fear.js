@@ -16,6 +16,8 @@
  * !fear text {id}                Registers a text object to be updated with fear amount as it changes. The {id} is
  *                                optional, and if omitted will set the selected text object. To stop the updating on
  *                                a specific object, run the command again.
+ * !fear text prefix [text]       Specify (quoted) text to appear before the fear counter in text objects.
+ * !fear text suffix [text]       Specify (quoted) text to appear after the fear counter in text objects.
  * !fear text [number/tally/circled/bar/dots/skulls]
  *                                Switches how the fear count is displayed in the text objects.
  * !fear announce [on/off]        Globally sets announcements to *all* players on or off when the fear amount changes.
@@ -26,7 +28,7 @@
  */
 class DaggerheartFearScript {
 
-    static VERSION = '1.0.3';
+    static VERSION = '1.0.4';
 
     static BOT_NAME = 'The Game';
 
@@ -42,17 +44,10 @@ class DaggerheartFearScript {
         //init state
         if (!state.fear || (typeof state.fear !== 'object')) {
             state.fear = {
-                version: DaggerheartFearScript.VERSION,
+                version: '1.0.0',
                 counter: 0,
                 known: [],
-                off: [],
-                whispers: false,
-                announce: true,
-                textMode: 'tally',
-                textPrefix: '',
-                objects: {
-                    text: []
-                }
+                off: []
             };
         }
         //upgrade
@@ -61,6 +56,7 @@ class DaggerheartFearScript {
             state.fear.announce = true;
             state.fear.textMode = 'tally';
             state.fear.textPrefix = '';
+            state.fear.textSuffix = '';
             state.fear.objects = {
                 text: []
             };
@@ -226,24 +222,29 @@ class DaggerheartFearScript {
         if (state.fear.objects.text.length) {
             for (let oid of state.fear.objects.text) {
                 let textObject = getObj('text', oid);
+                let text = '';
                 if (state.fear.textMode === 'tally') {
-                    let text = '𝍸'.repeat(Math.floor(state.fear.counter / 5));
+                    text = '𝍸'.repeat(Math.floor(state.fear.counter / 5));
                     switch (state.fear.counter % 5) {
                         case 1: text += '𝍩'; break;
                         case 2: text += '𝍪'; break;
                         case 3: text += '𝍫'; break;
                         case 4: text += '𝍬'; break;
                     }
-                    textObject.set('text', text);
                 } else if (state.fear.textMode === 'circled') {
                     let parts = state.fear.counter.toString().split('');
                     let glyphs = ['⓪', '⓵', '⓶', '⓷', '⓸', '⓹', '⓺', '⓻', '⓼', '⓽'];
-                    textObject.set('text', parts.map(n => glyphs[parseInt(n)]).join(''));
+                    text = parts.map(n => glyphs[parseInt(n)]).join('');
                 } else if (DaggerheartFearScript.ADDITIONAL_TEXT_MODES[state.fear.textMode]) {
-                    textObject.set('text', DaggerheartFearScript.ADDITIONAL_TEXT_MODES[state.fear.textMode].repeat(state.fear.counter))
+                    text = DaggerheartFearScript.ADDITIONAL_TEXT_MODES[state.fear.textMode].repeat(state.fear.counter);
                 } else {
-                    textObject.set('text', state.fear.counter.toString());
+                    text = state.fear.counter.toString();
                 }
+                //hack around roll20 bug where the game crashes due to empty text
+                if (text === null || text === '') {
+                    text = ' ';
+                }
+                textObject.set('text', text);
             }
         }
     }
