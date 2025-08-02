@@ -20,6 +20,13 @@
  * !fear text suffix [text]       Specify (quoted) text to appear after the fear counter in text objects.
  * !fear text [number/tally/circled/bar/dots/skulls]
  *                                Switches how the fear count is displayed in the text objects.
+ * !fear text update              Force the registered text objects to update with the current settings and fear value.
+ *                                This also lists the IDs of any registered text objects.
+ * !fear text monospace {id}      Sets the currently selected or specified (by ID) text object to use a fixed-width
+ *                                predictable font.
+ * !fear text spacefill [on/off]  Fills in the spaces where the counter text could occur with spaces, this helps
+ *                                maintain the general size of the counter text object, especially when the monospace
+ *                                option is used.
  * !fear announce [on/off]        Globally sets announcements to *all* players on or off when the fear amount changes.
  * !fear whispers [on/off]        Globally sets whispers to players on or off when the fear amount changes.
  * !fear reset                    Resets the fear counter to 0.
@@ -28,7 +35,7 @@
  */
 class DaggerheartFearScript {
 
-    static VERSION = '1.0.4';
+    static VERSION = '1.0.5';
 
     static BOT_NAME = 'The Game';
 
@@ -52,14 +59,17 @@ class DaggerheartFearScript {
         }
         //upgrade
         if (state.fear?.version !== DaggerheartFearScript.VERSION) {
-            state.fear.whispers = false;
-            state.fear.announce = true;
-            state.fear.textMode = 'tally';
-            state.fear.textPrefix = '';
-            state.fear.textSuffix = '';
-            state.fear.objects = {
-                text: []
-            };
+            state.fear = Object.assign({
+                whispers: false,
+                announce: true,
+                textMode: 'tally',
+                textPrefix: '',
+                textSuffix: '',
+                textSpaceFill: true,
+                objects: {
+                    text: []
+                }
+            }, state.fear);
             state.fear.version = DaggerheartFearScript.VERSION;
         }
         if (state.fear.counter > DaggerheartFearScript.MAXIMUM_FEAR) {
@@ -218,10 +228,19 @@ class DaggerheartFearScript {
         return textObjs.map(o => o.id);
     }
 
+    monospaceTextObjects(...objectIDs) {
+        let textObjs = filterObjs(obj => objectIDs.includes(obj.id) && obj.get('type') === 'text');
+        for (let to of textObjs) {
+            to.set('font_family', 'monospace');
+        }
+        return textObjs.map(o => o.id);
+    }
+
     updateTextObjects() {
         if (state.fear.objects.text.length) {
             for (let oid of state.fear.objects.text) {
                 let textObject = getObj('text', oid);
+                let extraSpaces = 0;
                 let text = '';
                 if (state.fear.textMode === 'tally') {
                     text = '𝍸'.repeat(Math.floor(state.fear.counter / 5));
@@ -231,14 +250,31 @@ class DaggerheartFearScript {
                         case 3: text += '𝍫'; break;
                         case 4: text += '𝍬'; break;
                     }
+                    extraSpaces = 5 - text.length;
                 } else if (state.fear.textMode === 'circled') {
                     let parts = state.fear.counter.toString().split('');
                     let glyphs = ['⓪', '⓵', '⓶', '⓷', '⓸', '⓹', '⓺', '⓻', '⓼', '⓽'];
                     text = parts.map(n => glyphs[parseInt(n)]).join('');
+                    extraSpaces = 2 - text.length;
                 } else if (DaggerheartFearScript.ADDITIONAL_TEXT_MODES[state.fear.textMode]) {
+                    let charLength = DaggerheartFearScript.ADDITIONAL_TEXT_MODES[state.fear.textMode].length;
                     text = DaggerheartFearScript.ADDITIONAL_TEXT_MODES[state.fear.textMode].repeat(state.fear.counter);
+                    extraSpaces = Math.min(100, DaggerheartFearScript.MAXIMUM_FEAR) - state.fear.counter;
+                    if (charLength > 1) {
+                        extraSpaces *= charLength;
+                    }
                 } else {
                     text = state.fear.counter.toString();
+                    extraSpaces = 2 - text.length;
+                }
+                if (state.fear.textSpaceFill && extraSpaces > 0) {
+                    text += ' '.repeat(extraSpaces);
+                }
+                if (typeof state.fear.textPrefix === 'string' && state.fear.textPrefix) {
+                    text = state.fear.textPrefix + ' ' + text;
+                }
+                if (typeof state.fear.textSuffix === 'string' && state.fear.textSuffix) {
+                    text += ' ' + state.fear.textSuffix;
                 }
                 //hack around roll20 bug where the game crashes due to empty text
                 if (text === null || text === '') {
@@ -400,6 +436,49 @@ class DaggerheartFearScript {
                                     state.fear.textMode = chat.args[1];
                                     this.updateTextObjects();
                                     this.pm(chat.player, `Text mode is now set to "${chat.args[1]}".`);
+                                } else if (chat.args.length === 2 && chat.args[1] === 'update') {
+                                    this.updateTextObjects();
+                                    let message;
+                                    let ids = state.fear.objects.text;
+                                    if (ids.length) {
+                                        message = `(${ids.length}) Text objects have been <em>updated</em>:`;
+                                        message += '<ul>';
+                                        for (let id of ids) {
+                                            message += `<li>ID: ${id}</li>`;
+                                        }
+                                        message += '</ul>';
+                                    } else {
+                                        message = '(0) Text objects are registered. There are no text objects to update.';
+                                    }
+                                    this.pm(chat.player, message);
+                                } else if ((chat.args.length === 2 || chat.args.length === 3) && chat.args[1] === 'monospace') {
+                                    let ids = msg.selected?.filter(s => s._type === 'text').map(s => s._id);
+                                    if (chat.args.length === 3) {
+                                        ids = [chat.args[2]];
+                                    }
+                                    if (ids && ids.length) {
+                                        this.monospaceTextObjects(...ids);
+                                        this.updateTextObjects();
+                                        this.pm(chat.player, `The text object(s) "${ids.join('", "')}" will now use a monospace font.`);
+                                    } else {
+                                        this.pm(chat.player, `No text objects are selected. Please select a text object, or specify the object ID.`);
+                                    }
+                                } else if (chat.args.length === 3 && chat.args[1] === 'spacefill') {
+                                    if (chat.args[2] === 'on' || chat.args[2] === 'off') {
+                                        state.fear.textSpaceFill = chat.args[2] === 'on';
+                                        this.updateTextObjects();
+                                        this.pm(chat.player, `Text space-fill is now <mark>${chat.args[2]}</mark>`);
+                                    } else {
+                                        this.pm(chat.player, 'Invalid command arguments, expected "on" or "off"');
+                                    }
+                                } else if (chat.args.length === 3 && chat.args[1] === 'prefix') {
+                                    state.fear.textPrefix = chat.args[2];
+                                    this.updateTextObjects();
+                                    this.pm(chat.player, `Text objects will now show the prefix "${state.fear.textPrefix}".`);
+                                } else if (chat.args.length === 3 && chat.args[1] === 'suffix') {
+                                    state.fear.textSuffix = chat.args[2];
+                                    this.updateTextObjects();
+                                    this.pm(chat.player, `Text objects will now show the suffix "${state.fear.textSuffix}".`);
                                 } else if (chat.args.length === 1 || chat.args.length === 2) {
                                     let ids = msg.selected?.filter(s => s._type === 'text').map(s => s._id);
                                     if (chat.args.length === 2) {
