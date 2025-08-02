@@ -36,6 +36,7 @@ This fear tracker listens for duality rolls from Demiplane-linked character shee
 ![orbotik's daggerheart fear tracker](.repo/daggerheart-fear-tracker.webp)
 
 Registered text objects have some creative options ("text modes", see `!fear text [...]` below) for showing the current fear amounts:
+
 ![tally](.repo/daggerheart-fear-tracker-tally.webp)
 ![circled](.repo/daggerheart-fear-tracker-circled.webp)
 ![bar](.repo/daggerheart-fear-tracker-bar.webp)
