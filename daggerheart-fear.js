@@ -10,7 +10,9 @@
  * !fear                 Shows the current fear counter value.
  * !fear [on/off]        Turns fear notices (from duality rolls) on or off for the commanding player.
  * ### GM Only:
- * !fear reset                    Resets the fear counter to 0.
+ * !fear spend [number]           Decreases the fear counter by 1 or a specific number (to a minimum of 0).
+ * !fear gain [number]            Increases the fear counter by 1 or a specific number.
+ * !fear set [number]             Sets the fear counter to a specific value.
  * !fear text {id}                Registers a text object to be updated with fear amount as it changes. The {id} is
  *                                optional, and if omitted will set the selected text object. To stop the updating on
  *                                a specific object, run the command again.
@@ -18,10 +20,8 @@
  *                                Switches the text updated between using tallies or using numbers.
  * !fear announce [on/off]        Globally sets announcements to *all* players on or off when the fear amount changes.
  * !fear whispers [on/off]        Globally sets whispers to players on or off when the fear amount changes.
- * !fear spend [number]           Decreases the fear counter by 1 or a specific number (to a minimum of 0).
- * !fear gain [number]            Increases the fear counter by 1 or a specific number.
- * !fear set [number]             Sets the fear counter to a specific value.
- * !fear reset objects            Clears all fear-tracking object registrations
+ * !fear reset                    Resets the fear counter to 0.
+ * !fear reset objects            Clears all fear-tracking object registrations.
  * !fear reset known              Clears the known player list (players will re-receive the welcome message).
  */
 class DaggerheartFearScript {
