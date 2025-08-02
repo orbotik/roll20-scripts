@@ -45,7 +45,14 @@ class DaggerheartFearScript {
                 version: DaggerheartFearScript.VERSION,
                 counter: 0,
                 known: [],
-                off: []
+                off: [],
+                whispers: false,
+                announce: true,
+                textMode: 'tally',
+                textPrefix: '',
+                objects: {
+                    text: []
+                }
             };
         }
         //upgrade
@@ -53,6 +60,7 @@ class DaggerheartFearScript {
             state.fear.whispers = false;
             state.fear.announce = true;
             state.fear.textMode = 'tally';
+            state.fear.textPrefix = '';
             state.fear.objects = {
                 text: []
             };
