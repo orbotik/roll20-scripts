@@ -24,9 +24,9 @@
  *                                This also lists the IDs of any registered text objects.
  * !fear text monospace {id}      Sets the currently selected or specified (by ID) text object to use a fixed-width
  *                                predictable font.
- * !fear text spacefill [on/off]  Fills in the spaces where the counter text could occur with spaces, this helps
- *                                maintain the general size of the counter text object, especially when the monospace
- *                                option is used.
+ * !fear text spacefill [on/off]  Ensures the a uniform text length in text objects even when the fear value is low by
+ *                                filling unused character spots with a space. Paired with the monospace command this
+ *                                can help prevent the text objects from "jumping around" horizontally.
  * !fear announce [on/off]        Globally sets announcements to *all* players on or off when the fear amount changes.
  * !fear whispers [on/off]        Globally sets whispers to players on or off when the fear amount changes.
  * !fear reset                    Resets the fear counter to 0.
