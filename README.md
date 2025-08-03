@@ -56,6 +56,9 @@ Players can turn notifications on or off as they wish, or simply run `!fear` to 
 | `!fear set [number]` | **GM-only.** Sets the fear to any number (0-999). |
 | `!fear text {id}` | **GM-only.** Registers a text object to be updated with fear amount as it changes. The `{id}` is optional, and if omitted will set the selected text object. To stop the updating on a specific object, run the command again. |
 | `!fear text [tally/circled/bar/dots/skulls/number]` | **GM-only.** Switches how the fear count is displayed in the text objects. |
+| `!fear text update` | **GM-only.** Force the registered text objects to update with the current settings and fear value. This also lists the IDs of any registered text objects. |
+| `!fear text monospace {id}` | **GM-only.** Sets the currently selected or specified (by ID) text object to use a fixed-width predictable font. |
+| `!fear text spacefill [on/off]` | **GM-only.** Fills in the spaces where the counter text could occur with spaces, this helps maintain the general size of the counter text object, especially when the monospace option is used. |
 | `!fear announce [on/off]` | **GM-only.** Globally sets announcements to *all* players on or off when the fear amount changes. |
 | `!fear whispers [on/off]` | **GM-only.** Globally sets whispers to players on or off when the fear amount changes. |
 | `!fear reset` | **GM-only.** Resets the fear counter to `0`. |
