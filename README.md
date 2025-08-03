@@ -30,7 +30,9 @@ This script allows you to quickly normalize and clean the HTML of a specified ha
 |:-|:-|
 | `!cleaner [handout]` | Cleans the handout with the specified name (use quotes if the handout name has spaces). |
 
-### [Daggerhear: Fear Tracker](daggerheart-fear.js) 
+### [Daggerhear: Fear Tracker](daggerheart-fear.js)
+<small>Current Version `v1.0.5`</small>
+
 This fear tracker listens for duality rolls from Demiplane-linked character sheets and bumps up a game fear counter everytime someone rolls with fear. It sends notices to all players showing the new fear value either as player-enabled whispers or chat announcements (or none), and can even update text objects on the maps with fear values!
 
 ![orbotik's daggerheart fear tracker](.repo/daggerheart-fear-tracker.webp)
