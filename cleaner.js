@@ -10,10 +10,10 @@
  * !cleaner [handout]                 Cleans (normalizes) the notes (& GM notes) of the named handout.
  */
 
-const VERSION = '1.0.0';
-
 class OrbotikCleaner {
-    'use strict';
+
+    VERSION = '1.0.0';
+
     constructor() {
 
         this.tagAttributes = {

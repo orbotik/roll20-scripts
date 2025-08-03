@@ -11,10 +11,9 @@
  * !switch-to @self                            Resets yourself as the active speaker.
  */
 
-const BOT_NAME = 'The Game';
-const VERSION = '1.0.0';
-
 on('ready', () => {
+    const BOT_NAME = 'The Game';
+    const VERSION = '1.0.0';
     log('Switch-to script started listening.');
     on('chat:message', (msg) => {
         if (msg.type === 'api' && !msg.rolltemplate && msg.playerid) {

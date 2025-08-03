@@ -8,6 +8,8 @@ If you have any **ideas**, **questions**, or **problems**, *please create [an is
 ## Scripts
 
 ### [Aziz Light!](aziz-light.js)
+`v1.0.0`    
+
 This script allows you to quickly set and move the daylight brightness using dynamic lighting to different levels, making it easy to macro light levels and mimic time passing.     
 *You can add an exclamation point `!` to the end of any of the commands to animate the brightness change.*
 
@@ -24,6 +26,8 @@ This script allows you to quickly set and move the daylight brightness using dyn
 > ![Aziz Light!](.repo/aziz-light1.gif) ![Aziz Light Tally](.repo/aziz-light2.gif)
 
 ### [Cleaner](cleaner.js) 
+`v1.0.0`    
+
 This script allows you to quickly normalize and clean the HTML of a specified handout's notes (including GM notes). It removes extraneous tags and styles and basically "resets" the HTML to standard, clean tags that Roll20 doesn't have problems with.
 ##### Commands:
 | Cmd | Description |
@@ -31,7 +35,7 @@ This script allows you to quickly normalize and clean the HTML of a specified ha
 | `!cleaner [handout]` | Cleans the handout with the specified name (use quotes if the handout name has spaces). |
 
 ### [Daggerhear: Fear Tracker](daggerheart-fear.js)
-<small>Current Version `v1.0.5`</small>
+`v1.0.5`    
 
 This fear tracker listens for duality rolls from Demiplane-linked character sheets and bumps up a game fear counter everytime someone rolls with fear. It sends notices to all players showing the new fear value either as player-enabled whispers or chat announcements (or none), and can even update text objects on the maps with fear values!
 
@@ -68,6 +72,8 @@ Players can turn notifications on or off as they wish, or simply run `!fear` to 
 | `!fear reset known` | **GM-only.** Clears the known player list (players will re-receive the welcome message). |
 
 ### [Switch-To](switch-to.js)
+`v1.0.0`    
+
 Ever want to tell a story as a GM and easily switch your portrait on-the-fly? This script allows you to quickly switch your "Speaking as" state to a named character in your game, revealing the portrait of that character in-game (assuming you don't have video enabled). This is really handy as an on-screen macro- you can instantly jump to "speaking as" other characters with the click of a button!
 
 ##### Commands:
@@ -77,6 +83,8 @@ Ever want to tell a story as a GM and easily switch your portrait on-the-fly? Th
 | `!switch-to @self` | Resets your portrait and speaking-as setting back to yourself. |
 
 ### [WhatIs](whatis/whatis.js)
+`v1.0.0`    
+
 This is a "*handout to searchable dictionary*" tool that converts your Roll20 handout notes into a searchable, browsable, in-game dictionary that you and your players can reference at any time. It evaluates header level 1 and 2 text and turns their content into *subjects* and *topics*. It supports topics as header-level entries or as bullet points with bolded keywords (see example).
 
 You can even use it to announce or share specific entries with players, just in case they forget a reference. At this time, only one handout is supported at a time. See the cleaner script to help produce a usable whatis-friendly handout.    
