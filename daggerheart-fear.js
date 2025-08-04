@@ -1,5 +1,5 @@
 /**
- * Daggerheart Fear
+ * Daggerheart Fear AutoTracker
  * Orbotik's Roll20 Scripts & Macros
  * https://orbotik.com
  * This script is © Christopher Eaton (aka @orbotik) and is licensed under CC BY-SA 4.0. 
