@@ -133,7 +133,7 @@ class DaggerheartFearScript {
         if (!playerObjOrID) {
             sendChat(DaggerheartFearScript.BOT_NAME, message);
         } else {
-            sendChat(DaggerheartFearScript.BOT_NAME, `/w "${playerObjOrID.get('displayname')}" ${message}`);
+            sendChat(DaggerheartFearScript.BOT_NAME, `/w "${playerObjOrID.get('displayname')}" ${message}`, null, { noarchive: true });
         }
     }
 

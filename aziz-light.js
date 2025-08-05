@@ -20,17 +20,6 @@
  * !aziz exactly [number]           +5% daytime light.
  * !aziz more                       +5% daytime light.
  * !aziz less                       -5% daytime light.
- * !aziz torch                      Give the selected token vision and a torch.
- * !aziz torch less                 Reduce the selected token's torch brightness.
- * !aziz torch more                 Increase the selected token's torch brightness.
- * !aziz torch light                Give the selected token's torch maximum brightness.
- * !aziz torch dark                 Snuff out the selected token's torch to minimal brightness.
- * !aziz torch timer [on/off]       Starts or stops the automatic torch brightness auto-adjustment timer.
- * !aziz torch timer [number][h/m]  Changes how long a torch lasts on the timer in hours or minutes ("1h", "15m", etc.).
- * !aziz torch time more            Add +5% time to all torches (generally reduces all torches brightness).
- *                                  This works even if the torch timer is off.
- * !aziz torch time less            Subtract -5% time from all torches (generally reduces all torches brightness).
- *                                  This works even if the torch timer is off.
  */
 
 class AzizLightScript {
