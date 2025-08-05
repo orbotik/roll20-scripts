@@ -349,7 +349,7 @@ class DaggerheartFearScript {
         }
         //capture duality roll with fear
         if (msg.type === 'advancedroll' && msg.content.match(/demiplane-dice-roll-daggerheart-character/gmi) && msg.content.match(/--roll-with-fear/gmi)) {
-            if (state.fear.listener) {
+            if (state.fear.listen) {
                 state.fear.counter = Math.min(DaggerheartFearScript.MAXIMUM_FEAR, state.fear.counter + 1);
                 this.updateTextObjects();
                 this.announceFear('+');
@@ -403,6 +403,21 @@ class DaggerheartFearScript {
                                 } else if (chat.args[1] === 'off') {
                                     state.fear.announce = false;
                                     this.pm(chat.player, 'Announcements are now <mark>off</mark>');
+                                } else {
+                                    this.pm(chat.player, 'Invalid command arguments, expected "on" or "off"');
+                                }
+                            } else {
+                                this.pm(chat.player, 'Invalid command or parameters (or you may not be the GM).');
+                            }
+                            break;
+                        case 'listen':
+                            if (chat.gm) {
+                                if (chat.args[1] === 'on') {
+                                    state.fear.listen = true;
+                                    this.pm(chat.player, 'Fear roll listener is now <mark>on</mark>');
+                                } else if (chat.args[1] === 'off') {
+                                    state.fear.listen = false;
+                                    this.pm(chat.player, 'Fear roll listener is now <mark>off</mark>');
                                 } else {
                                     this.pm(chat.player, 'Invalid command arguments, expected "on" or "off"');
                                 }
