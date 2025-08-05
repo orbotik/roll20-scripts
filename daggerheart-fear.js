@@ -16,9 +16,10 @@
  * !fear text {id}                Registers a text object to be updated with fear amount as it changes. The {id} is
  *                                optional, and if omitted will set the selected text object. To stop the updating on
  *                                a specific object, run the command again.
+ * !fear listen [on/off]          Turn the listener for Demiplane duality rolls on or off. This is "on" by default.
  * !fear text prefix [text]       Specify (quoted) text to appear before the fear counter in text objects.
  * !fear text suffix [text]       Specify (quoted) text to appear after the fear counter in text objects.
- * !fear text [number/tally/circled/bar/dots/skulls]
+ * !fear text [number/tally/circled/bar/dots/skulls/sparkles/exes/candles]
  *                                Switches how the fear count is displayed in the text objects.
  * !fear text update              Force the registered text objects to update with the current settings and fear value.
  *                                This also lists the IDs of any registered text objects.
@@ -35,7 +36,7 @@
  */
 class DaggerheartFearScript {
 
-    static VERSION = '1.0.5';
+    static VERSION = '1.0.6';
 
     static BOT_NAME = 'The Game';
 
@@ -44,7 +45,11 @@ class DaggerheartFearScript {
     static ADDITIONAL_TEXT_MODES = {
         bar: '█',
         dots: '•',
-        skulls: '💀'
+        skulls: '💀',
+        sparkles: '✨',
+        exes: '✗',
+        candles: '🕯️',
+        stars: '✵'
     };
 
     constructor() {
@@ -57,8 +62,9 @@ class DaggerheartFearScript {
                 off: []
             };
         }
-        //upgrade
-        if (state.fear?.version !== DaggerheartFearScript.VERSION) {
+        //upgrade current version to latest
+        let cvb = this.versionBits(state.fear.version);
+        if (cvb.major <= 1 && cvb.minor <= 0 && cvb.patch < 4) {
             state.fear = Object.assign({
                 whispers: false,
                 announce: true,
@@ -70,14 +76,34 @@ class DaggerheartFearScript {
                     text: []
                 }
             }, state.fear);
-            state.fear.version = DaggerheartFearScript.VERSION;
         }
+        if (cvb.major <= 1 && cvb.minor <= 0 && cvb.patch < 6) {
+            state.fear.listener = true;
+        }
+        state.fear.version = DaggerheartFearScript.VERSION;
+        //upgrade checks & initialization output
         if (state.fear.counter > DaggerheartFearScript.MAXIMUM_FEAR) {
             state.fear.counter = DaggerheartFearScript.MAXIMUM_FEAR;
         }
         log(`DaggerheartFearScript startup state is: ${JSON.stringify(state.fear, null, 4)}`);
         //events
         on('chat:message', this.chatHandler.bind(this));
+    }
+
+    /**
+     * Parses a semantic version string into it's major, minor, and patch components.
+     * @param {String} semver 
+     * @returns {{major: Number, minor: Number, patch: Number}} Returns the parsed version components.
+     */
+    versionBits(semver) {
+        if (!semver || typeof semver !== 'string') {
+            throw new Error('A valid semver string is required.');
+        }
+        if (!semver.match(/^\d+\.\d+\.\d+$/)) {
+            throw new Error('Invalid semver format, expected "major.minor.patch" format.');
+        }
+        let bits = semver.split('.').map(v => parseInt(v, 10));
+        return { major: bits[0], minor: bits[1], patch: bits[2] };
     }
 
     /**
@@ -323,9 +349,11 @@ class DaggerheartFearScript {
         }
         //capture duality roll with fear
         if (msg.type === 'advancedroll' && msg.content.match(/demiplane-dice-roll-daggerheart-character/gmi) && msg.content.match(/--roll-with-fear/gmi)) {
-            state.fear.counter = Math.min(DaggerheartFearScript.MAXIMUM_FEAR, state.fear.counter + 1);
-            this.updateTextObjects();
-            this.announceFear('+');
+            if (state.fear.listener) {
+                state.fear.counter = Math.min(DaggerheartFearScript.MAXIMUM_FEAR, state.fear.counter + 1);
+                this.updateTextObjects();
+                this.announceFear('+');
+            }
         } else {
             let chat = this.chatCommand(msg);
             if (chat?.command === 'fear') {
