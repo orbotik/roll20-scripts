@@ -19,7 +19,7 @@
  * !fear listen [on/off]          Turn the listener for Demiplane duality rolls on or off. This is "on" by default.
  * !fear text prefix [text]       Specify (quoted) text to appear before the fear counter in text objects.
  * !fear text suffix [text]       Specify (quoted) text to appear after the fear counter in text objects.
- * !fear text [number/tally/circled/bar/dots/skulls/sparkles/exes/candles]
+ * !fear text [number/tally/circled/bar/dots/skulls/sparkles/exes/candles/ravens]
  *                                Switches how the fear count is displayed in the text objects.
  * !fear text update              Force the registered text objects to update with the current settings and fear value.
  *                                This also lists the IDs of any registered text objects.
@@ -36,7 +36,7 @@
  */
 class DaggerheartFearScript {
 
-    static VERSION = '1.0.7';
+    static VERSION = '1.0.8';
 
     static BOT_NAME = 'The Game';
 
@@ -49,7 +49,8 @@ class DaggerheartFearScript {
         sparkles: '✨',
         exes: '✗',
         candles: '🕯️',
-        stars: '✵'
+        stars: '✵',
+        ravens: '🐦‍⬛'
     };
 
     constructor() {
