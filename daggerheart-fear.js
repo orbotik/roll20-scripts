@@ -36,7 +36,7 @@
  */
 class DaggerheartFearScript {
 
-    static VERSION = '1.0.6';
+    static VERSION = '1.0.7';
 
     static BOT_NAME = 'The Game';
 
@@ -77,8 +77,9 @@ class DaggerheartFearScript {
                 }
             }, state.fear);
         }
-        if (cvb.major <= 1 && cvb.minor <= 0 && cvb.patch < 6) {
-            state.fear.listener = true;
+        if (cvb.major <= 1 && cvb.minor <= 0 && cvb.patch < 7) {
+            delete state.fear.listener;
+            state.fear.listen = true;
         }
         state.fear.version = DaggerheartFearScript.VERSION;
         //upgrade checks & initialization output

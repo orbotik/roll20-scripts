@@ -1,5 +1,8 @@
 /**
  * This Little Light of Mine
+ * 
+ * WIP CHECK BACK LATER
+ * 
  * Orbotik's Roll20 Scripts & Macros
  * https://orbotik.com
  * This script is © Christopher Eaton (aka @orbotik) and is licensed under CC BY-SA 4.0. 
