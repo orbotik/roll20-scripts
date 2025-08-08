@@ -1,7 +1,10 @@
+///<reference path="./roll20.d.js" />
+
 /**
  * Daggerheart Fear AutoTracker
  * Orbotik's Roll20 Scripts & Macros
  * https://orbotik.com
+ * https://github.com/orbotik
  * This script is © Christopher Eaton (aka @orbotik) and is licensed under CC BY-SA 4.0. 
  * To view a copy of this license, visit https://creativecommons.org/licenses/by-sa/4.0/
  * 
@@ -313,6 +316,11 @@ class DaggerheartFearScript {
         }
     }
 
+    /**
+     * Parses a Roll20 Chat Message.
+     * @param {ChatMessage} msg 
+     * @returns {{command:String, args:Array.<String>, player:Player, gm:Boolean }}
+     */
     chatCommand(msg) {
         if (msg.type === 'api' && !msg.rolltemplate && msg.playerid) {
             let args;

@@ -5,6 +5,7 @@
  * 
  * Orbotik's Roll20 Scripts & Macros
  * https://orbotik.com
+ * https://github.com/orbotik
  * This script is © Christopher Eaton (aka @orbotik) and is licensed under CC BY-SA 4.0. 
  * To view a copy of this license, visit https://creativecommons.org/licenses/by-sa/4.0/
  * 
