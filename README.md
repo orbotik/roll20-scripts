@@ -88,6 +88,19 @@ Ever want to tell a story as a GM and easily switch your portrait on-the-fly? Th
 | `!switch-to [character]` | Switches your portrait and speaking-as setting to the named character (use quotes if the character name has spaces). |
 | `!switch-to @self` | Resets your portrait and speaking-as setting back to yourself. |
 
+### This Little Light of Mine
+I've been working on a really fun FX script inspired by Shadowdark that adds fire and torch effects (random sparks, burning, random smoke) and plan to add amazing PC/NPC torch capabilities to dynamic lighting in game, however, I ran into a fatal flaw... FX appear ABOVE dynamic lighting - this means that those lit torches can be seen, even when not in line of sight! I'd love to bring this script to reality to help enhance the immersion, but this problem will really negate it as there's no way to tell if an object is behind dynamic lighting or not.
+
+I'm making a suggestion to Roll20 in hopes they will correct this issue or at least provide an alternative.
+
+*If this is something you might be interested in, please vote up this suggestion!*
+
+https://app.roll20.net/forum/post/12463034/fx-should-be-below-dynamic-lighting/
+(click the vote up arrow in the top-left)
+
+Here's the WiP script (so much potential, yarrghh!) in action:
+![Little Light of Mine Roll20 FX Flaw](.repo/llom-flaw.webp)
+
 ### [WhatIs](whatis/whatis.js)
 `v1.0.0`    
 
