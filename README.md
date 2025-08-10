@@ -35,7 +35,7 @@ This script allows you to quickly normalize and clean the HTML of a specified ha
 | `!cleaner [handout]` | Cleans the handout with the specified name (use quotes if the handout name has spaces). |
 
 ### [Daggerhear: Fear AutoTracker](daggerheart-fear.js)
-`v1.0.8`    
+`v1.0.9`    
 
 This fear tracker listens for duality rolls from Demiplane-linked character sheets and bumps up a game fear counter everytime someone rolls with fear. It sends notices to all players showing the new fear value either as player-enabled whispers or chat announcements (or none), and can even update text objects on the maps with fear values!
 
@@ -67,7 +67,7 @@ Players can turn notifications on or off as they wish, or simply run `!fear` to 
 | `!fear text {id}` | **GM-only.** Registers a text object to be updated with fear amount as it changes. The `{id}` is optional, and if omitted will set the selected text object. To stop the updating on a specific object, run the command again. |
 | `!fear text prefix [text]` | **GM-only.** Specify (quoted) text to appear before the fear counter in text objects. |
 | `!fear text suffix [text]` | **GM-only.** Specify (quoted) text to appear after the fear counter in text objects. |
-| `!fear text [tally/circled/bar/dots/skulls/number/candles/stars/ravens]` | **GM-only.** Switches how the fear count is displayed in the text objects. |
+| `!fear text [skulls/tally/circled/bar/dots/number/candles/stars/ravens]` | **GM-only.** Switches how the fear count is displayed in the text objects. |
 | `!fear text update` | **GM-only.** Force the registered text objects to update with the current settings and fear value. This also lists the IDs of any registered text objects. |
 | `!fear text monospace {id}` | **GM-only.** Sets the currently selected or specified (by ID) text object to use a fixed-width predictable font. |
 | `!fear text spacefill [on/off]` | **GM-only.** Ensures the a uniform text length in text objects even when the fear value is low by filling unused character spots with a space. Paired with the monospace command this can help prevent the text objects from "jumping around" horizontally. |
