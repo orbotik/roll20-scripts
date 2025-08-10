@@ -39,7 +39,7 @@
  */
 class DaggerheartFearScript {
 
-    static VERSION = '1.0.8';
+    static VERSION = '1.0.9';
 
     static BOT_NAME = 'The Game';
 
@@ -72,7 +72,7 @@ class DaggerheartFearScript {
             state.fear = Object.assign({
                 whispers: false,
                 announce: true,
-                textMode: 'tally',
+                textMode: 'skulls',
                 textPrefix: '',
                 textSuffix: '',
                 textSpaceFill: true,
@@ -248,15 +248,15 @@ class DaggerheartFearScript {
     }
 
     unregisterTextObjects(...objectIDs) {
-        let textObjs = filterObjs(obj => objectIDs.includes(obj.id) && obj.get('type') === 'text');
-        objectIDs = textObjs.map(o => o.id);
+        let found = [];
         for (let oid of objectIDs) {
             let index = state.fear.objects.text.indexOf(oid);
             if (index >= 0) {
                 state.fear.objects.text.splice(index, 1);
+                found.push(oid);
             }
         }
-        return textObjs.map(o => o.id);
+        return found;
     }
 
     monospaceTextObjects(...objectIDs) {
@@ -271,47 +271,52 @@ class DaggerheartFearScript {
         if (state.fear.objects.text.length) {
             for (let oid of state.fear.objects.text) {
                 let textObject = getObj('text', oid);
-                let extraSpaces = 0;
-                let text = '';
-                if (state.fear.textMode === 'tally') {
-                    text = '𝍸'.repeat(Math.floor(state.fear.counter / 5));
-                    switch (state.fear.counter % 5) {
-                        case 1: text += '𝍩'; break;
-                        case 2: text += '𝍪'; break;
-                        case 3: text += '𝍫'; break;
-                        case 4: text += '𝍬'; break;
-                    }
-                    extraSpaces = 5 - text.length;
-                } else if (state.fear.textMode === 'circled') {
-                    let parts = state.fear.counter.toString().split('');
-                    let glyphs = ['⓪', '⓵', '⓶', '⓷', '⓸', '⓹', '⓺', '⓻', '⓼', '⓽'];
-                    text = parts.map(n => glyphs[parseInt(n)]).join('');
-                    extraSpaces = 2 - text.length;
-                } else if (DaggerheartFearScript.ADDITIONAL_TEXT_MODES[state.fear.textMode]) {
-                    let charLength = DaggerheartFearScript.ADDITIONAL_TEXT_MODES[state.fear.textMode].length;
-                    text = DaggerheartFearScript.ADDITIONAL_TEXT_MODES[state.fear.textMode].repeat(state.fear.counter);
-                    extraSpaces = Math.min(100, DaggerheartFearScript.MAXIMUM_FEAR) - state.fear.counter;
-                    if (charLength > 1) {
-                        extraSpaces *= charLength;
-                    }
+                if (!textObject) {
+                    this.unregisterTextObjects(oid);
+                    log(`The text object with ID "${oid}" was not found and has been unregistered as a fear tracker.`);
                 } else {
-                    text = state.fear.counter.toString();
-                    extraSpaces = 2 - text.length;
+                    let extraSpaces = 0;
+                    let text = '';
+                    if (state.fear.textMode === 'tally') {
+                        text = '𝍸'.repeat(Math.floor(state.fear.counter / 5));
+                        switch (state.fear.counter % 5) {
+                            case 1: text += '𝍩'; break;
+                            case 2: text += '𝍪'; break;
+                            case 3: text += '𝍫'; break;
+                            case 4: text += '𝍬'; break;
+                        }
+                        extraSpaces = 5 - text.length;
+                    } else if (state.fear.textMode === 'circled') {
+                        let parts = state.fear.counter.toString().split('');
+                        let glyphs = ['⓪', '⓵', '⓶', '⓷', '⓸', '⓹', '⓺', '⓻', '⓼', '⓽'];
+                        text = parts.map(n => glyphs[parseInt(n)]).join('');
+                        extraSpaces = 2 - text.length;
+                    } else if (DaggerheartFearScript.ADDITIONAL_TEXT_MODES[state.fear.textMode]) {
+                        let charLength = DaggerheartFearScript.ADDITIONAL_TEXT_MODES[state.fear.textMode].length;
+                        text = DaggerheartFearScript.ADDITIONAL_TEXT_MODES[state.fear.textMode].repeat(state.fear.counter);
+                        extraSpaces = Math.min(100, DaggerheartFearScript.MAXIMUM_FEAR) - state.fear.counter;
+                        if (charLength > 1) {
+                            extraSpaces *= charLength;
+                        }
+                    } else {
+                        text = state.fear.counter.toString();
+                        extraSpaces = 2 - text.length;
+                    }
+                    if (state.fear.textSpaceFill && extraSpaces > 0) {
+                        text += ' '.repeat(extraSpaces);
+                    }
+                    if (typeof state.fear.textPrefix === 'string' && state.fear.textPrefix) {
+                        text = state.fear.textPrefix + ' ' + text;
+                    }
+                    if (typeof state.fear.textSuffix === 'string' && state.fear.textSuffix) {
+                        text += ' ' + state.fear.textSuffix;
+                    }
+                    //hack around roll20 bug where the game crashes due to empty text
+                    if (text === null || text === '') {
+                        text = ' ';
+                    }
+                    textObject.set('text', text);
                 }
-                if (state.fear.textSpaceFill && extraSpaces > 0) {
-                    text += ' '.repeat(extraSpaces);
-                }
-                if (typeof state.fear.textPrefix === 'string' && state.fear.textPrefix) {
-                    text = state.fear.textPrefix + ' ' + text;
-                }
-                if (typeof state.fear.textSuffix === 'string' && state.fear.textSuffix) {
-                    text += ' ' + state.fear.textSuffix;
-                }
-                //hack around roll20 bug where the game crashes due to empty text
-                if (text === null || text === '') {
-                    text = ' ';
-                }
-                textObject.set('text', text);
             }
         }
     }
@@ -488,7 +493,7 @@ class DaggerheartFearScript {
                                 )) {
                                     state.fear.textMode = chat.args[1];
                                     this.updateTextObjects();
-                                    this.pm(chat.player, `Text mode is now set to "${chat.args[1]}".`);
+                                    this.pm(chat.player, `Text mode is now set to "${chat.args[1]}".<br><small><em>Please note that some text modes may not work across all operating systems. If you experience a problem, please report your operating system, browser, version, and text mode you are attempting to use here:<br>https://github.com/orbotik/roll20-scripts/issues</em></small>`);
                                 } else if (chat.args.length === 2 && chat.args[1] === 'update') {
                                     this.updateTextObjects();
                                     let message;

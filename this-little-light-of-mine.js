@@ -92,6 +92,26 @@ class ThisLittleLightOfMineScript {
 
     static BOT_NAME = 'The Game';
 
+    static FX_TORCH = {
+        angle: 0,
+        angleRandom: 90,
+        duration: 50,
+        emissionRate: 20,
+        endColour: [0, 0, 0, 0],
+        endColourRandom: [0, 0, 0, 0],
+        gravity: { "x": 0.01, "y": -5 },
+        lifeSpan: 12,
+        lifeSpanRandom: 10,
+        maxParticles: 400,
+        sharpness: 0,
+        size: 1,
+        sizeRandom: 5,
+        speed: 0.25,
+        speedRandom: 0.5,
+        startColour: [150, 90, 50, 1],
+        startColourRandom: [30, 20, 0, 0]
+    }
+
     static FX_SPARKS = {
         angle: 0,
         angleRandom: 360,
@@ -103,6 +123,7 @@ class ThisLittleLightOfMineScript {
         lifeSpan: 35,
         lifeSpanRandom: 20,
         maxParticles: 50,
+        sharpness: 0,
         size: 1,
         sizeRandom: 4,
         speed: 0.2,
@@ -122,8 +143,9 @@ class ThisLittleLightOfMineScript {
         gravityRandom: { "x": 25, "y": 0 },
         lifeSpan: 12,
         lifeSpanRandom: 10,
-        maxParticles: 100,
-        size: 12,
+        maxParticles: 75,
+        sharpness: 0,
+        size: 8,
         sizeRandom: 8,
         speed: 0.1,
         speedRandom: 0.5,
@@ -131,7 +153,7 @@ class ThisLittleLightOfMineScript {
         startColourRandom: [0, 10, 30, 0]
     };
 
-    static RENDER_INTERVAL = 500;
+    static RENDER_INTERVAL = 200;
 
     /**
      * Retains the (ephemeral) rendering state.
@@ -147,7 +169,8 @@ class ThisLittleLightOfMineScript {
          */
         now: 0,
         /**
-         * LLOM custom FX references.
+         * Custom FX references.
+         * @type {{ smokeID:String, sparksID:String, torchID:String }}
          */
         fx: null,
         /**
@@ -166,9 +189,12 @@ class ThisLittleLightOfMineScript {
         // if (!state.littleLightOfMine || (typeof state.littleLightOfMine !== 'object')) {
         state.littleLightOfMine = {
             version: '0.0.1',
-            missedChanceWaitRandom: 750,
-            smokeChance: 0.05,
-            sparkChance: 0.35
+            chance: {
+                missedWaitRandom: 750,
+                successWaitRandom: 1000,
+                smoke: 0.05,
+                spark: 0.45
+            }
         };
         // }
         //upgrade current version to latest
@@ -181,7 +207,7 @@ class ThisLittleLightOfMineScript {
         state.littleLightOfMine.version = ThisLittleLightOfMineScript.VERSION;
         log(`ThisLittleLightOfMineScript startup state is: ${JSON.stringify(state.littleLightOfMine, null, 4)}`);
         //init objects
-        this.rendering.fx = this.ensureFX();
+        this.rendering.fx = this.loadFX();
         //events
         on('chat:message', this.chatHandler.bind(this));
         this.rendering.interval = setInterval(this.render.bind(this), ThisLittleLightOfMineScript.RENDER_INTERVAL);
@@ -190,10 +216,13 @@ class ThisLittleLightOfMineScript {
     /**
      * @typedef Settings
      * @property {String} version - The semantic version of this script.
-     * @property {Number} missedChanceWaitRandom - A maximum number of milliseconds to randomly wait if a second has
+     * @property {Object} chance
+     * @property {Number} chance.missedWaitRandom - A maximum number of milliseconds to randomly wait if a second has
      * elapsed, but no effect chance occurred. This can help fx appear more random. Maximum is 3s (3000ms).
-     * @property {Number} smokeChance - The chance that a torch will emanate smoke in 1 second.
-     * @property {Number} sparkChance - The chance that a torch will emanate sparks in 1 second.
+     * @property {Number} chance.successWaitRandom - A maximum number of milliseconds to randomly wait if a second has
+     * elapsed, and effect was generated. Maximum is 3s (3000ms).
+     * @property {Number} chance.smoke - The chance that a torch will emanate smoke in 1 second.
+     * @property {Number} chance.spark - The chance that a torch will emanate sparks in 1 second.
      */
 
     /**
@@ -243,29 +272,24 @@ class ThisLittleLightOfMineScript {
 
     /**
      * Ensure that the LLOM custom FX are present and accounted for, if not, create them.
-     * @return {{ smokeID:String, sparksID:String }}
+     * @return {{ smokeID:String, sparksID:String, torchID:String }}
      */
-    ensureFX() {
+    loadFX() {
         let fx = {};
-        let fxObjs = filterObjs(v => v.get('type') === 'custfx' && v.get('name').match(/^llom-/i));
-        if (!fxObjs || !fxObjs.length || fxObjs.some(v => v.get('name') === 'llom-smoke') === false) {
-            log('Creating llom-smoke FX.');
-            fx.smokeID = createObj('custfx', {
-                name: 'llom-smoke',
-                definition: ThisLittleLightOfMineScript.FX_SMOKE
-            }).id;
-        } else {
-            fx.smokeID = fxObjs.find(v => v.get('name') === 'llom-smoke').id;
+        let fxObjs = filterObjs(v => v.get('type') === 'custfx' && v.get('name').match(/^llom_/i));
+        let loadFx = (name, definition) => {
+            let o;
+            if (!fxObjs || !fxObjs.length || fxObjs.some(v => v.get('name') === name) === false) {
+                log(`Creating ${name} FX.`);
+                o = createObj('custfx', { name, definition });
+            } else {
+                o = fxObjs.find(v => v.get('name') === name);
+            }
+            return o.id;
         }
-        if (!fxObjs || !fxObjs.length || fxObjs.some(v => v.get('name') === 'llom-sparks') === false) {
-            log('Creating llom-sparks FX.');
-            fx.sparksID = createObj('custfx', {
-                name: 'llom-sparks',
-                definition: ThisLittleLightOfMineScript.FX_SPARKS
-            }).id;
-        } else {
-            fx.sparksID = fxObjs.find(v => v.get('name') === 'llom-sparks').id;
-        }
+        fx.smokeID = loadFx('llom_smoke', ThisLittleLightOfMineScript.FX_SMOKE);
+        fx.sparksID = loadFx('llom_sparks', ThisLittleLightOfMineScript.FX_SPARKS);
+        fx.torchID = loadFx('llom_torch', ThisLittleLightOfMineScript.FX_TORCH);
         return fx;
     }
 
@@ -312,6 +336,12 @@ class ThisLittleLightOfMineScript {
         }
     }
 
+    /**
+     * Renders environmental torches.
+     * @param {Number} now 
+     * @param {Number} ticks 
+     * @param {Map.<String, *>} tracker 
+     */
     renderEnvironment(now, ticks, tracker) {
         //handle environmental lighting effects
         let envTorches = filterObjs((obj) =>
@@ -319,19 +349,35 @@ class ThisLittleLightOfMineScript {
             obj.get('imgsrc') === '/images/editor/torch.svg'
         );
         for (let t of envTorches) {
-            let lastUpdate = tracker.get(t.id);
-            if (!lastUpdate || now - lastUpdate > 1000) {
+            let torchTracker = tracker.get(t.id);
+            if (!torchTracker) {
+                torchTracker = {};
+                tracker.set(t.id, torchTracker);
+            }
+            //relight burnt out torches (effect lasts about 2s)
+            if (!torchTracker?.torchBurn || now - torchTracker.torchBurn >= 700) {
+                spawnFx(t.get('left'), t.get('top'), this.rendering.fx.torchID);
+                torchTracker.torchBurn = now;
+            }
+            //torch random effect (spark, smoke).
+            if (!torchTracker?.randomEffect || now - torchTracker.randomEffect >= 1000) {
                 let nextNow = now;
-                if (Math.random() <= this.settings.sparkChance) {
+                let triggered = false;
+                if (Math.random() <= this.settings.chance.spark) {
                     spawnFx(t.get('left'), t.get('top'), this.rendering.fx.sparksID);
-                } else if (Math.random() <= this.settings.smokeChance) {
+                    triggered = true;
+                } else if (Math.random() <= this.settings.chance.smoke) {
                     spawnFx(t.get('left'), t.get('top'), this.rendering.fx.smokeID);
-                } else if (this.settings.missedChanceWaitRandom > 0) {
-                    nextNow += Math.min(3000, (Math.random() * this.settings.missedChanceWaitRandom));
+                    triggered = true;
+                }
+                if (triggered && this.settings.chance.successWaitRandom > 0) {
+                    nextNow += Math.min(3000, (Math.random() * this.settings.chance.successWaitRandom));
+                } else if (triggered === false && this.settings.chance.missedWaitRandom > 0) {
+                    nextNow += Math.min(3000, (Math.random() * this.settings.chance.missedWaitRandom));
                 }
                 //we set the tracker updated time even if the chance occurrence didn't happen, so that there is a
                 //wait to the next interval (1s) for a weighted chance.
-                this.rendering.tracker.set(t.id, nextNow); 
+                torchTracker.randomEffect = nextNow;
             }
         }
     }
