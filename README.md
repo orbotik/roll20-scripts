@@ -118,6 +118,19 @@ You can even use it to announce or share specific entries with players, just in 
 | `!whatis to@[playername] […]` | Send the results of a following `!whatis` command to the specified player. You can also specify "everyone" to send to everyone in the game, or "gm" to send to the GM of the game. |
 | `!whatis @table [tablename] [# or #-#]` | Examine a rollable table and show contents, optionally specifying a specific roll at the given entry number (or range). |
 | `!whatis @reload` | **GM-only.** Attempts to reload (re-parse) your whatis document. 
+| `!whatis @init` | **GM-only.** Creates a new, fresh WhatIs handout to start with.
+
 ##### GM Recommendations
 1. By default, the script looks for a handout called "WhatIs" (case-insensitive), but you can specify the ID or name in the script if desired.
 2. HTML in handouts can get really messy. It's strongly recommended that you create clean content for the the handout that doesn't use special styling. The go-to procedure for effective parsing is to write your handout in markdown, then copy the rendered version into the handout notes. Once that is saved, run the `!cleaner` script on the handout to normalize it. Then you can run `!whatis @reload` to re-parse the handout. If this is done properly, you'll see your subjects listed with `!whatis @subjects`.
+3. 
+##### Setup
+1. Add the script to your game.
+1. Run the command !whatis @init in chat as the GM to create a fresh WhatIs handout.
+1. The !whatis script will load and parse your script and turn it into a searchable dictionary.
+   Header 1's become **Subjects**\
+   Then you have two options for creating **Topics** under each Subject:\
+   A. Use Header 2's - The content under the header 2's become the content of the Topic.\
+   B. Use a bulleted list with the Topic preceding, and bolded, followed by a colon, then the content.
+1. Anytime you update the handout, just run `!whatis reload` as the GM and the document will be re-parsed and loaded. 
+1. That's it, you and your player's can now start searching with the `!whatis` command!

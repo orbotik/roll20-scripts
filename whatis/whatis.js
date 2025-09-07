@@ -16,10 +16,11 @@
  * !whatis @table [tablename] [# or #-#]  Examine a rollable table and show contents, optionally specifying a specific roll at the given entry number (or range).
  * ### GM Only:
  * !whatis @reload                        GM-only. Attempts to reload (re-parse) your whatis document.
+ * !whatis @init                          GM-only. Creates a new, fresh WhatIs handout to start with.
  */
 
 const WHATIS_HANDOUT_ID = null;
-const WHATIS_HANDOUT_NAME = 'whatis';
+const WHATIS_HANDOUT_NAME = 'WhatIs';
 const WHATIS_PARAM_TO_REGEX = /to@/i;
 const WHATIS_PARAM_AFTER_REGEX = /after@([0-9]+)/i;
 const WHATIS_PARAM_SEARCH_REGEX = /@search/i;
@@ -164,6 +165,72 @@ const Strings = {
         return input.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&');
     }
 };
+
+const WHATIS_TEMPLATE = `
+<h2>WhatIs Help</h2>
+<p>The <em>whatis</em> command is a chat feature by <a href="https://app.roll20.net/users/12231884/orbotik">@orbotik</a> that lets you quickly look-up subject rules and topics within a handout dictionary.</p>
+<p>Here are the commands available:</p>
+<ul>
+<li><strong>!whatis @subjects</strong><br />
+List all subjects in the dictionary.<br />
+[Try it](!whatis @subjects)</li>
+<li><strong>!whatis [subject]</strong><br />
+Show a summary listing of topics under a subject.<br />
+</li>
+<li><strong>!whatis [subject] [topic]</strong><br />
+Show the definition for a topic.</li>
+<li><strong>!whatis [...search terms]</strong><br />
+Perform a general search with one or more search terms.<br />
+</li>
+<li><strong>!whatis @search [...search terms]</strong><br />
+Same as above, but forces the search, even if a term directly matches a subject/topic.<br />
+</li>
+<li><strong>!whatis to@[playername] […]</strong><br />
+Send the results to another player. With <strong>[playername]</strong> you can also specify:
+<ul>
+<li>"everyone" to send to everyone in the game.<br />
+</li>
+<li>"gm" to send to the GM of the game.</li>
+</ul></li>
+<li><strong>!whatis @table [tablename] [# or #-#]</strong><br />
+Examine a rollable table, optionally specifying a specific roll at the given entry number (or range).</li>
+</ul>
+<p><em>Note: If any argument (search term, playername, etc.) contains spaces, surround it with quotes (e.g. to@"Bob The Bugbear").</em></p>
+<p>You can use this tool as much as you'd like in the game, the output is <em>not</em> stored in the chat log (so it will not be filled with extraneous queries).</p>
+<p><em>The <a href="https://github.com/orbotik/roll20-scripts">whatis script</a> is authored by <a href="https://app.roll20.net/users/12231884/orbotik">@orbotik</a> under CC-SA-BY 4.0. Any original game rules text or content included below are for gameplay purposes only and are subject to the original author's license.</em></p>
+<hr />
+<h1>Sample Subject A</h1>
+<h2>Sample Topic A1</h2>
+<p>Lorem ipsum dolor <strong>sit amet</strong>, consectetur adipiscing elit. Proin id dictum lacus. <strong>Mauris</strong> nec sapien ac arcu aliquet rhoncus nec nec magna. Vivamus ut nulla elit. In a tempor turpis. Vivamus et ligula <em>mauris</em>. Sed volutpat purus quis <strong><em>dolor pellentesque ultricies</em></strong>. Ut posuere eget mauris vel euismod. Etiam a ligula elit.</p>
+<ol>
+<li>[Sample Subject C](!whatis 'Sample Subject C') Click to jump by command.</li>
+</ol>
+<h2>Sample Topic A2</h2>
+<p>In lacinia sapien non ante <strong>venenatis feugiat</strong>. Quisque et posuere leo. Suspendisse a venenatis erat. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Etiam lacinia felis vel tincidunt gravida.</p>
+<h1>Sample Subject B</h1>
+<p>Aenean ut tempus libero, sit amet sodales ligula. Nullam ut eleifend augue, et venenatis nisl. Maecenas vitae sagittis orci, a dapibus lectus.</p>
+<ul>
+<li>Listing of something 1</li>
+<li>Listing of something 2</li>
+<li>Listing of something 3</li>
+</ul>
+<h2>Sample Topic B1</h2>
+<p>In lacinia sapien non ante <strong>venenatis feugiat</strong>. Quisque et posuere leo. Suspendisse a venenatis erat.</p>
+<h2>Sample Topic B2</h2>
+<p>In lacinia sapien non ante <strong>venenatis feugiat</strong>. Quisque et posuere leo. Suspendisse a venenatis erat.</p>
+<h2>Sample Topic B3</h2>
+<p>In lacinia sapien non ante <strong>venenatis feugiat</strong>. Quisque et posuere leo. Suspendisse a venenatis erat.</p>
+<h1>Sample Subject C</h1>
+<p>Praesent ultrices eleifend justo, sed ullamcorper ex fermentum non. Fusce vitae aliquam nunc.</p>
+<h4>Praesent suscipit</h4>
+<p>Eu mauris ac sollicitudin. Cras rutrum volutpat tellus, ultricies eleifend leo dictum ut.</p>
+<p>Vivamus ac molestie eros. Vestibulum vulputate arcu non tortor rutrum facilisis. Maecenas vulputate eu risus quis lobortis.</p>
+<ul>
+<li><strong>Topic C1</strong>: Donec turpis tortor, lacinia sed urna eu, tincidunt posuere dolor.</li>
+<li><strong>Topic C2</strong>: Proin malesuada sollicitudin luctus.</li>
+<li><strong>Topic C3</strong>: Mauris pulvinar eros ut leo sagittis, nec dapibus dolor imperdiet. Integer iaculis nunc purus, tempus condimentum neque commodo sed.</li>
+</ul>
+`;
 
 class WhatIs {
     'use strict';
@@ -692,7 +759,17 @@ class WhatIs {
             args = args.map(v => v.replaceAll(/[^a-zA-Z0-9 _=@\-()&+]/g, ''));
             // log(`command=${command}, args=${args}`);
             if (command === 'whatis') {
-                if (!this.whatis.loaded) {
+                if (args.length === 1 && playerIsGM(msg.playerid) && /@init/i.test(args[0])) {
+                    let o = createObj('handout', {
+                        name: WHATIS_HANDOUT_NAME,
+                        archived: false,
+                        notes: WHATIS_TEMPLATE,
+                        inplayerjournals: "all"
+                    });
+                    this.sendChatMessage(msg.playerid, `Created new handout "${WHATIS_HANDOUT_NAME}", with ID=${o.id}. This handout is available to all players.`);
+                    this.sendChatMessage(msg.playerid, 'Reloading WhatIs document.');
+                    this.loadWhatIs();
+                } else if (!this.whatis.loaded) {
                     //oh no, not ready!
                     log('WARN: WhatIs chat query made, but loading is incomplete.');
                     this.sendChatMessage(msg.playerid, 'Oops! The WhatIs dictionary has not loaded yet. Please wait a few seconds!');
